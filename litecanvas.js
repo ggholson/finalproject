@@ -1,7 +1,32 @@
+/* 
+
+	FUNCTION rgb encodes rgb values into a CSS readable hex string
+
+	params:
+		r 		red value
+		g 		green value
+		b 		blue value
+
+	return:
+		Hex encoded string representing the three values
+
+*/
 function rgb(r, g, b) {
-    return '#' + r.toString(16) + g.toString(16) + b.toString(16);
+    return '#' + (r > 16 ? r.toString(16) : "0" + r.toString(16)) + (g > 16 ? g.toString(16) : "0" + g.toString(16)) + (b > 16 ? b.toString(16) : "0" + b.toString(16));
 }
 
+/*
+
+	FUNCTION checkColor compares a string against a list of known CSS color values and returns any matches as a hex encoded rgb value
+
+	params:
+		c 		String representing the plain-text color value
+
+	return:
+		Hex encoded string representing the color 
+		or false if there are no matches
+
+*/
 function checkColor(c) {
     var colors = {
         "aliceblue": "#f0f8ff",
@@ -152,48 +177,270 @@ function checkColor(c) {
     return false;
 }
 
+/*
+
+	CLASS to contain the main rendering surface for the canvas
+
+	params:
+		name		ID of the canvas HTML element to bind to
+		height 		Max value of the y coordinate axis on the canvas. Not required if specified in the HTML.
+		width 		Max value of the x coordinate axis on the canvas. Not required if specified in the HTML.
+
+	return:
+		LiteCanvas object that has been instantiated
+
+*/
 LiteCanvas = function(name, height, width) {
-    this.name = name;
-    this.height = height;
-    this.width = width;
 
-    this.canvas = document.getElementById(name);
+    //Private scope variables
+    var name = name;
+    var height = height;
+    var width = width;
 
-    if (this.canvas) return true;
-    else return false;
-}
+    //Bind to the HTML canvas element and store it in a private scope variable
+    var canvas = document.getElementById(name);
+    var context = canvas.getContext('2d');
 
-LiteCanvas.prototype.setBGcolor = function(bgcolor) {
-    if (!(typeof bgcolor === 'string')) {
-        $(this.canvas).css("background-color", bgcolor.toString());
+    //Variables to store user defined elements
+    Colors = {};
+    Shapes = {
+        'unlabeled': []
+    };
+
+    //Override height and width values if a parameter was specified
+    //Otherwise inherit from the HTML element
+    if (height) {
+        $(canvas).attr("height", height);
     } else {
-        $(this.canvas).css("background-color", bgcolor);
+        height = $(canvas).attr("height");
+    }
+    if (width) {
+        $(canvas).attr("width", width);
+    } else {
+        width = $(canvas).attr("width");
+    }
+
+    //Public getter functions for height and width
+    this.getHeight = function() {
+        return height;
+    }
+    this.getWidth = function() {
+        return width;
+    }
+
+    /*
+
+		Public METHOD to set the background color of the canvas
+
+		params
+			bgcolor 		Color to set the background to. Accepts a Color object, plain text CSS value, or hex-encoded rgb string
+
+    */
+    this.setBGColor = function(bgcolor) {
+        if (!(typeof bgcolor === 'string')) {
+            $(canvas).css("background-color", bgcolor.toString());
+        } else {
+            $(canvas).css("background-color", bgcolor);
+        }
+    }
+
+    /*
+
+		Public METHOD to save a user defined color
+
+		params
+			c 				Color object to be saved for later use
+
+    */
+    this.addColor = function(c) {
+        Colors[c.name] = c;
+    }
+
+    /*
+
+		Public METHOD to save a user defined color
+
+		params
+			s 				Shape object to be saved for later use
+
+    */
+    this.addShape = function(s) {
+        if (s.name) {
+            Shapes[s.name] = s;
+        } else {
+            Shapes['unlabeled'].push(s);
+        }
+    }
+
+    /*
+
+		Public METHOD to clear the canvas of all shapes and start over
+	
+    */
+    this.deleteAll = function() {
+        Shapes = [];
+    }
+
+    /*
+
+		Public METHOD to remove all elements from the canvas while preserving the drawing
+	
+    */
+    this.clearAll = function() {
+        context.clearRect(0, 0, width, height);
+    }
+
+    /*
+
+		Public METHOD to redraw all shapes in the saved objects
+	
+    */
+    this.redraw = function() {
+        this.clearAll();
+        for (var key in Shapes) {
+            if (key === 'unlabeled') {
+                for (i = 0; i < Shapes['unlabeled'].length; i++) {
+                    Shapes[key][i].draw(context);
+                }
+            } else {
+                Shapes[key].draw(context);
+            }
+        }
     }
 }
 
+/*
 
-Color = function(c) {
+	CLASS to hold a color value and allow manipulation on it
+
+	params:
+		c 		Hex encoded rgb value or plain text string representing a CSS color
+
+*/
+Color = function(c, name) {
+    //Identify if the color is hex or plain text
     if (!(c.substring(0, 1) === '#')) {
+        //If plain text, check against the list of known CSS values
         var c = checkColor(c);
+        //If it is not hex or a recognized text value, exit
         if (!(c)) {
             return false;
         }
     }
 
+    if (name) {
+        this.name = name;
+    }
+
+    //Set private variables for RGB
     var red = parseInt(c.substring(1, 3), 16);
     var green = parseInt(c.substring(3, 5), 16);
     var blue = parseInt(c.substring(5, 7), 16);
     var alpha = 1;
 
+    /*
+
+		Public METHOD to return the colors representation as a hex encoded RGB string
+
+    */
     this.toString = function() {
         return rgb(red, green, blue);
     }
+
+    //Public getter functions for individual color values
+    this.getRed = function() {
+        return red;
+    }
+    this.getGreen = function() {
+        return green;
+    }
+    this.getBlue = function() {
+        return blue;
+    }
+
+    /*
+
+		Public METHOD to blend two colors and store the resulting value
+
+		params:
+			m 			String or color value to blend with the current color
+
+    */
+    this.blend = function(m) {
+        if (typeof m === 'string') {
+            m = new Color(m);
+        }
+        red = Math.floor((red + m.getRed()) / 2);
+        green = Math.floor((green + m.getGreen()) / 2);
+        blue = Math.floor((blue + m.getBlue()) / 2);
+    }
 }
+
+Line = function(xstart, ystart, xend, yend, name) {
+
+    if (name) {
+        this.name = name;
+    }
+    var xstart = xstart;
+    var ystart = ystart;
+    var xend = xend;
+    var yend = yend;
+    var weight = 1;
+    var color = new Color("black");
+
+    this.setWeight = function(w) {
+        weight = w;
+    }
+
+    this.setColor = function(c) {
+        if (c instanceof Color) {
+            color = c;
+        } else {
+            color = new Color(c);
+        }
+    }
+
+    this.move = function(x, y) {
+        xstart += x;
+        ystart += y;
+        xend += x;
+        yend += y;
+    }
+
+    this.rotate = function(d) {
+        var theta = d * Math.PI / 180
+
+        var midx = Math.abs(xend - xstart);
+        var midy = Math.abs(yend - ystart);
+
+        nxs = (xstart - midx) * Math.cos(theta) - (ystart - midy) * Math.sin(theta) + midx;
+        nys = (xstart - midx) * Math.sin(theta) + (ystart - midy) * Math.cos(theta) + midy;
+        nxe = (xend - midx) * Math.cos(theta) - (yend - midy) * Math.sin(theta) + midx;
+        nye = (xend - midx) * Math.sin(theta) + (yend - midy) * Math.cos(theta) + midy;
+
+        xstart = nxs;
+        ystart = nys;
+        xend = nxe;
+        yend = nye;
+    }
+
+    this.draw = function(context) {
+        context.beginPath();
+        context.moveTo(xstart, ystart);
+        context.lineTo(xend, yend);
+        context.lineWidth = weight;
+        context.strokeStyle = color.toString();
+        context.stroke();
+    }
+
+}
+
+
 
 //TEST LOOP
 $(document).ready(function() {
-    x = new LiteCanvas('c', 500, 500);
+    x = new LiteCanvas('c');
     console.log(x);
-    c = new Color('#2f4d32')
-    x.setBGcolor(c);
+    c = new Color('red');
+    x.setBGColor(c);
 });
