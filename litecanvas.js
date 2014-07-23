@@ -377,6 +377,12 @@ Line = function(xstart, ystart, xend, yend) {
     var xend = xend;
     var yend = yend;
 
+    if (arguments.length != 4) {
+        throw new Error("Line(): Line definition must contain 4 arguments");
+    } else if (typeof(xstart + xend + ystart + yend) != 'number') {
+        throw new Error("Line(): Coordinate arguments must be numbers");
+    }
+
     //Defaults
     var weight = 1;
     var color = new Color("black");
@@ -388,6 +394,11 @@ Line = function(xstart, ystart, xend, yend) {
 			w 			Desired width of the line in pixels
     */
     this.setWeight = function(w) {
+        if (arguments.length != 1) {
+            throw new Error("Line.setWeight(): Function must have exactly 1 argument");
+        } else if (typeof w != 'number') {
+            throw new Error("Line.setWeight(): Argument must be a number");
+        }
         weight = w;
     }
 
@@ -400,6 +411,8 @@ Line = function(xstart, ystart, xend, yend) {
     this.setColor = function(c) {
         if (c instanceof Color) {
             color = c;
+        } else if (typeof c != 'string') {
+            throw new Error("Line.setColor(): Argument must be a color object or a valid string");
         } else {
             color = new Color(c);
         }
@@ -412,6 +425,12 @@ Line = function(xstart, ystart, xend, yend) {
 			x,y 		Distance to move each endpoint in pixels
     */
     this.move = function(x, y) {
+        if (arguments.length != 2) {
+            throw new Error("Line.move(): Function must have exactly 2 arguments");
+        } else if (typeof(x + y) != 'number') {
+            throw new Error("Line.move(): Arguments must be numbers");
+        }
+
         xstart += x;
         ystart += y;
         xend += x;
@@ -425,6 +444,12 @@ Line = function(xstart, ystart, xend, yend) {
 			d 			Angle to rotate the line by
     */
     this.rotate = function(d, xr, yr) {
+        if (!(arguments.length === 1 || arguments.length === 3)) {
+            throw new Error("Line.rotate(): Function must have one or three arguments");
+        } else if (typeof(xr + yr + d) != 'number') {
+            throw new Error("Line.rotate(): Arguments must be numbers");
+        }
+
         var theta = d * Math.PI / 180
 
         if (xr) midx = xr;
@@ -436,27 +461,6 @@ Line = function(xstart, ystart, xend, yend) {
         nys = (xstart - midx) * Math.sin(theta) + (ystart - midy) * Math.cos(theta) + midy;
         nxe = (xend - midx) * Math.cos(theta) - (yend - midy) * Math.sin(theta) + midx;
         nye = (xend - midx) * Math.sin(theta) + (yend - midy) * Math.cos(theta) + midy;
-
-        xstart = nxs;
-        ystart = nys;
-        xend = nxe;
-        yend = nye;
-    }
-
-    /*
-		Public METHOD to rotate the line around a fixed point
-
-		params:
-			d 			Angle to rotate the line by
-			x,y 		Coordinates of the point to rotate around
-    */
-    this.pointRotate = function(d, x, y) {
-        var theta = d * Math.PI / 180
-
-        nxs = (xstart - x) * Math.cos(theta) - (ystart - y) * Math.sin(theta) + x;
-        nys = (xstart - x) * Math.sin(theta) + (ystart - y) * Math.cos(theta) + y;
-        nxe = (xend - x) * Math.cos(theta) - (yend - y) * Math.sin(theta) + x;
-        nye = (xend - x) * Math.sin(theta) + (yend - y) * Math.cos(theta) + y;
 
         xstart = nxs;
         ystart = nys;
@@ -478,12 +482,11 @@ Line = function(xstart, ystart, xend, yend) {
         context.strokeStyle = color.toString();
         context.stroke();
     }
-
 }
 
 /*
 
-	CLASS to hold a Circle shape and allow manipulation on it
+	CLASS to hold a Arc shape and allow manipulation on it
 
 	params:
 		x,y 		Coordinate components of the circle's center
@@ -500,46 +503,71 @@ Arc = function(x, y, r, s, d) {
     var s = s;
     var d = d * Math.PI / 180;
 
+    if (arguments.length != 4) {
+        throw new Error("Arc(): Arc definition must contain 5 arguments");
+    } else if (typeof(x + y + r + s + d) != 'number') {
+        throw new Error("Arc(): Coordinate arguments must be numbers");
+    }
+
     //Defaults
     weight = 1;
     color = new Color('black');
 
     /*
-		Public METHOD to set the line weight
+		Public METHOD to set the Arc weight
 
 		params:
-			w 			Desired width of the line in pixels
+			w 			Desired width of the Arc in pixels
     */
     this.setWeight = function(w) {
+        if (arguments.length != 1) {
+            throw new Error("Arc.setWeight(): Function must have exactly 1 argument");
+        } else if (typeof w != 'number') {
+            throw new Error("Arc.setWeight(): Argument must be a number");
+        }
         weight = w;
     }
 
     /*
-		Public METHOD to set the line color
+		Public METHOD to set the Arc color
 
 		params:
-			c			Desired color of the line as a color object or valid string
+			c			Desired color of the Arc as a color object or valid string
     */
     this.setColor = function(c) {
         if (c instanceof Color) {
             color = c;
+        } else if (typeof c != 'string') {
+            throw new Error("Arc.setColor(): Argument must be a color object or a valid string");
         } else {
             color = new Color(c);
         }
     }
 
     /*
-		Public METHOD to move the line by an even number of pixels
+		Public METHOD to move the Arc by an even number of pixels
 
 		params:
 			x,y 		Distance to move each endpoint in pixels
     */
     this.move = function(xm, ym) {
+        if (arguments.length != 2) {
+            throw new Error("Arc.move(): Function must have exactly 2 arguments");
+        } else if (typeof(x + y) != 'number') {
+            throw new Error("Arc.move(): Arguments must be numbers");
+        }
+
         x += xm;
         y += ym;
     }
 
     this.rotate = function(dr) {
+        if (!(arguments.length === 1 || arguments.length === 3)) {
+            throw new Error("Arc.rotate(): Function must have one or three arguments");
+        } else if (typeof(xr + yr + d) != 'number') {
+            throw new Error("Arc.rotate(): Arguments must be numbers");
+        }
+
         s += dr * Math.PI / 180;
     }
 
@@ -553,7 +581,153 @@ Arc = function(x, y, r, s, d) {
     }
 }
 
+/*
 
+	CLASS to hold a Quadrilateral shape and allow manipulation on it
+
+	params:
+		x,y 		Coordinate components of the lines start and endpoints
+
+*/
+Triangle = function(x0, y0, x1, y1, x2, y2) {
+    //Private variables to hold local scope coordinates
+    var x = [x0, x1, x2];
+    var y = [y0, y1, y2];
+
+    if (arguments.length != 6) {
+        throw new Error("Triangle(): Triangle definition must contain 6 arguments");
+    } else if (typeof(x0 + x1 + x2 + y0 + y1 + y2) != 'number') {
+        throw new Error("Triangle(): Coordinate arguments must be numbers");
+    }
+
+    //Defaults
+    var borderWeight = 1;
+    var fillColor = new Color("black");
+    var borderColor = new Color("black");
+
+    /*
+		Public METHOD to set the border weight
+
+		params:
+			w 			Desired width of the line in pixels
+    */
+    this.setBorderWeight = function(w) {
+        if (arguments.length != 1) {
+            throw new Error("Triangle.setBorderWeight(): Function must have exactly 1 argument");
+        } else if (typeof w != 'number') {
+            throw new Error("Triangle.setBorderWeight(): Argument must be a number");
+        }
+
+        borderWeight = w;
+    }
+
+    /*
+		Public METHOD to set the fill color
+
+		params:
+			c			Desired color of the line as a color object or valid string
+    */
+    this.setFillColor = function(c) {
+        if (c instanceof Color) {
+            color = c;
+        } else if (typeof c != 'string') {
+            throw new Error("Triangle.setFillColor(): Argument must be a color object or a valid string");
+        } else {
+            color = new Color(c);
+        }
+    }
+
+    /*
+		Public METHOD to set the border color
+
+		params:
+			c			Desired color of the line as a color object or valid string
+    */
+    this.setBorderColor = function(c) {
+        if (c instanceof Color) {
+            color = c;
+        } else if (typeof c != 'string') {
+            throw new Error("Triangle.setBorderColor(): Argument must be a color object or a valid string");
+        } else {
+            color = new Color(c);
+        }
+    }
+
+    /*
+		Public METHOD to move the shape by an even number of pixels
+
+		params:
+			x,y 		Distance to move each endpoint in pixels
+    */
+    this.move = function(xm, ym) {
+        if (arguments.length != 2) {
+            throw new Error("Triangle.move(): Function must have exactly 2 arguments");
+        } else if (typeof(x + y) != 'number') {
+            throw new Error("Triangle.move(): Arguments must be numbers");
+        }
+
+        for (i = 0; i < x.length; i++) {
+            x[i] += xm;
+            y[i] += ym;
+        }
+    }
+
+
+    /*
+		Public METHOD to rotate the shape around a point
+
+		params:
+			d 			Angle to rotate the line by
+			xr, yr 		Point to pivot around. Defaults to center of the object if none is specified
+    */
+    this.rotate = function(d, xr, yr) {
+        if (!(arguments.length === 1 || arguments.length === 3)) {
+            throw new Error("Triangle.rotate(): Function must have one or three arguments");
+        } else if (typeof(xr + yr + d) != 'number') {
+            throw new Error("Triangle.rotate(): Arguments must be numbers");
+        }
+
+        var theta = d * Math.PI / 180
+        var xmid;
+        var ymid;
+
+        if (xr) xmid = xr;
+        else xmid = (x[0] + x[1] + x[2]) / 3;
+        if (yr) ymid = yr;
+        else ymid = (y[0] + y[1] + y[2]) / 3;
+
+        for (i = 0; i < 3; i++) {
+            newx = (x[i] - xmid) * Math.cos(theta) - (y[i] - ymid) * Math.sin(theta) + xmid;
+            newy = (x[i] - xmid) * Math.sin(theta) + (y[i] - ymid) * Math.cos(theta) + ymid;
+
+            x[i] = newx;
+            y[i] = newy;
+        }
+
+
+    }
+
+
+    /*
+		Public METHOD to draw the line onto the canvas using HTML canvas methods
+
+		params:
+			context 		Canvas drawing object passed from the rendering surface
+    */
+    this.draw = function(context) {
+        context.beginPath();
+        context.moveTo(x[0], y[0]);
+        context.lineTo(x[1], y[1]);
+        context.lineTo(x[2], y[2]);
+        context.lineTo(x[0], y[0]);
+        context.closePath();
+        context.lineWidth = borderWeight;
+        context.fillStyle = fillColor.toString();
+        context.strokeStyle = borderColor.toString();
+        context.fill();
+        context.stroke();
+    }
+}
 
 /*
 
@@ -568,6 +742,12 @@ Rectangle = function(xstart, ystart, xend, yend) {
     var x = [xstart, xstart, xend, xend];
     var y = [ystart, yend, yend, ystart];
 
+    if (arguments.length != 4) {
+        throw new Error("Rectangle(): Rectangle definition must contain 6 arguments");
+    } else if (typeof(xstart + xend + ystart + yend) != 'number') {
+        throw new Error("Rectangle(): Coordinate arguments must be numbers");
+    }
+
     //Defaults
     var borderWeight = 1;
     var fillColor = new Color("black");
@@ -580,6 +760,12 @@ Rectangle = function(xstart, ystart, xend, yend) {
 			w 			Desired width of the line in pixels
     */
     this.setBorderWeight = function(w) {
+        if (arguments.length != 1) {
+            throw new Error("Rectangle.setBorderWeight(): Function must have exactly 1 argument");
+        } else if (typeof w != 'number') {
+            throw new Error("Rectangle.setBorderWeight(): Argument must be a number");
+        }
+
         borderWeight = w;
     }
 
@@ -591,9 +777,11 @@ Rectangle = function(xstart, ystart, xend, yend) {
     */
     this.setFillColor = function(c) {
         if (c instanceof Color) {
-            fillColor = c;
+            color = c;
+        } else if (typeof c != 'string') {
+            throw new Error("Rectangle.setFillColor(): Argument must be a color object or a valid string");
         } else {
-            fillColor = new Color(c);
+            color = new Color(c);
         }
     }
 
@@ -605,9 +793,11 @@ Rectangle = function(xstart, ystart, xend, yend) {
     */
     this.setBorderColor = function(c) {
         if (c instanceof Color) {
-            borderColor = c;
+            color = c;
+        } else if (typeof c != 'string') {
+            throw new Error("Rectangle.setBorderColor(): Argument must be a color object or a valid string");
         } else {
-            borderColor = new Color(c);
+            color = new Color(c);
         }
     }
 
@@ -618,6 +808,12 @@ Rectangle = function(xstart, ystart, xend, yend) {
 			x,y 		Distance to move each endpoint in pixels
     */
     this.move = function(xm, ym) {
+        if (arguments.length != 2) {
+            throw new Error("Rectangle.move(): Function must have exactly 2 arguments");
+        } else if (typeof(x + y) != 'number') {
+            throw new Error("Rectangle.move(): Arguments must be numbers");
+        }
+
         for (i = 0; i < x.length; i++) {
             x[i] += xm;
             y[i] += ym;
@@ -633,6 +829,12 @@ Rectangle = function(xstart, ystart, xend, yend) {
 			xr, yr 		Point to pivot around. Defaults to center of the object if none is specified
     */
     this.rotate = function(d, xr, yr) {
+        if (!(arguments.length === 1 || arguments.length === 3)) {
+            throw new Error("Rectangle.rotate(): Function must have one or three arguments");
+        } else if (typeof(xr + yr + d) != 'number') {
+            throw new Error("Rectangle.rotate(): Arguments must be numbers");
+        }
+
         var theta = d * Math.PI / 180
         var xmid;
         var ymid;
@@ -687,6 +889,12 @@ Quad = function(x0, y0, x1, y1, x2, y2, x3, y3) {
     var x = [x0, x1, x2, x3];
     var y = [y0, y1, y2, y3];
 
+    if (arguments.length != 6) {
+        throw new Error("Quad(): Quad definition must contain 8 arguments");
+    } else if (typeof(x0 + x1 + x2 + x3 + y0 + y1 + y2 + y3) != 'number') {
+        throw new Error("Quad(): Coordinate arguments must be numbers");
+    }
+
     //Defaults
     var borderWeight = 1;
     var fillColor = new Color("black");
@@ -699,6 +907,12 @@ Quad = function(x0, y0, x1, y1, x2, y2, x3, y3) {
 			w 			Desired width of the line in pixels
     */
     this.setBorderWeight = function(w) {
+        if (arguments.length != 1) {
+            throw new Error("Quad.setBorderWeight(): Function must have exactly 1 argument");
+        } else if (typeof w != 'number') {
+            throw new Error("Quad.setBorderWeight(): Argument must be a number");
+        }
+
         borderWeight = w;
     }
 
@@ -710,9 +924,11 @@ Quad = function(x0, y0, x1, y1, x2, y2, x3, y3) {
     */
     this.setFillColor = function(c) {
         if (c instanceof Color) {
-            fillColor = c;
+            color = c;
+        } else if (typeof c != 'string') {
+            throw new Error("Quad.setFillColor(): Argument must be a color object or a valid string");
         } else {
-            fillColor = new Color(c);
+            color = new Color(c);
         }
     }
 
@@ -724,9 +940,11 @@ Quad = function(x0, y0, x1, y1, x2, y2, x3, y3) {
     */
     this.setBorderColor = function(c) {
         if (c instanceof Color) {
-            borderColor = c;
+            color = c;
+        } else if (typeof c != 'string') {
+            throw new Error("Quad.setBorderColor(): Argument must be a color object or a valid string");
         } else {
-            borderColor = new Color(c);
+            color = new Color(c);
         }
     }
 
@@ -737,6 +955,12 @@ Quad = function(x0, y0, x1, y1, x2, y2, x3, y3) {
 			x,y 		Distance to move each endpoint in pixels
     */
     this.move = function(xm, ym) {
+        if (arguments.length != 2) {
+            throw new Error("Quad.move(): Function must have exactly 2 arguments");
+        } else if (typeof(x + y) != 'number') {
+            throw new Error("Quad.move(): Arguments must be numbers");
+        }
+
         for (i = 0; i < x.length; i++) {
             x[i] += xm;
             y[i] += ym;
@@ -752,6 +976,12 @@ Quad = function(x0, y0, x1, y1, x2, y2, x3, y3) {
 			xr, yr 		Point to pivot around. Defaults to center of the object if none is specified
     */
     this.rotate = function(d, xr, yr) {
+        if (!(arguments.length === 1 || arguments.length === 3)) {
+            throw new Error("Quad.rotate(): Function must have one or three arguments");
+        } else if (typeof(xr + yr + d) != 'number') {
+            throw new Error("Quad.rotate(): Arguments must be numbers");
+        }
+
         var theta = d * Math.PI / 180
         var xmid;
         var ymid;
@@ -808,8 +1038,18 @@ Polygon = function(x, y) {
     var x = x;
     var y = y;
 
+    if (arguments.length != 2) {
+        throw new Error("Polygon(): Polygon definition must contain 2 arguments");
+    } else if (typeof(x.reduce(function(a, b) {
+        return a + b;
+    }) + y.reduce(function(a, b) {
+        return a + b;
+    })) != 'number') {
+        throw new Error("Polygon(): Coordinate arrays must contain only numbers");
+    }
+
     if (x.length != y.length || x.length < 4) {
-        return false;
+        throw new Error("Polygon(): Coordinate array arguments must be the same length");
     }
 
     //Defaults
@@ -824,6 +1064,12 @@ Polygon = function(x, y) {
 			w 			Desired width of the line in pixels
     */
     this.setBorderWeight = function(w) {
+        if (arguments.length != 1) {
+            throw new Error("Polygon.setBorderWeight(): Function must have exactly 1 argument");
+        } else if (typeof w != 'number') {
+            throw new Error("Polygon.setBorderWeight(): Argument must be a number");
+        }
+
         borderWeight = w;
     }
 
@@ -835,9 +1081,11 @@ Polygon = function(x, y) {
     */
     this.setFillColor = function(c) {
         if (c instanceof Color) {
-            fillColor = c;
+            color = c;
+        } else if (typeof c != 'string') {
+            throw new Error("Polygon.setFillColor(): Argument must be a color object or a valid string");
         } else {
-            fillColor = new Color(c);
+            color = new Color(c);
         }
     }
 
@@ -849,9 +1097,11 @@ Polygon = function(x, y) {
     */
     this.setBorderColor = function(c) {
         if (c instanceof Color) {
-            borderColor = c;
+            color = c;
+        } else if (typeof c != 'string') {
+            throw new Error("Polygon.setBorderColor(): Argument must be a color object or a valid string");
         } else {
-            borderColor = new Color(c);
+            color = new Color(c);
         }
     }
 
@@ -862,6 +1112,12 @@ Polygon = function(x, y) {
 			x,y 		Distance to move each endpoint in pixels
     */
     this.move = function(xm, ym) {
+        if (arguments.length != 2) {
+            throw new Error("Polygon.move(): Function must have exactly 2 arguments");
+        } else if (typeof(x + y) != 'number') {
+            throw new Error("Polygon.move(): Arguments must be numbers");
+        }
+
         for (i = 0; i < x.length; i++) {
             x[i] += xm;
             y[i] += ym;
@@ -876,6 +1132,12 @@ Polygon = function(x, y) {
 			xr, yr 		Point to pivot around. Defaults to center of the object if none is specified
     */
     this.rotate = function(d, xr, yr) {
+        if (!(arguments.length === 1 || arguments.length === 3)) {
+            throw new Error("Polygon.rotate(): Function must have one or three arguments");
+        } else if (typeof(xr + yr + d) != 'number') {
+            throw new Error("Polygon.rotate(): Arguments must be numbers");
+        }
+
         var theta = d * Math.PI / 180
         var xmid;
         var ymid;
@@ -943,6 +1205,12 @@ Circle = function(x, y, r) {
     var y = y;
     var r = r;
 
+    if (arguments.length != 3) {
+        throw new Error("Circle(): Circle definition must contain 3 arguments");
+    } else if (typeof(x0 + x1 + x2 + x3 + y0 + y1 + y2 + y3) != 'number') {
+        throw new Error("Circle(): Coordinate arguments must be numbers");
+    }
+
     //Defaults
     var borderWeight = 1;
     var fillColor = new Color("black");
@@ -955,6 +1223,12 @@ Circle = function(x, y, r) {
 			w 			Desired width of the line in pixels
     */
     this.setBorderWeight = function(w) {
+    	if (arguments.length != 1) {
+            throw new Error("Circle.setBorderWeight(): Function must have exactly 1 argument");
+        } else if (typeof w != 'number') {
+            throw new Error("Circle.setBorderWeight(): Argument must be a number");
+        }
+
         borderWeight = w;
     }
 
@@ -966,9 +1240,11 @@ Circle = function(x, y, r) {
     */
     this.setFillColor = function(c) {
         if (c instanceof Color) {
-            fillColor = c;
+            color = c;
+        } else if (typeof c != 'string') {
+            throw new Error("Circle.setFillColor(): Argument must be a color object or a valid string");
         } else {
-            fillColor = new Color(c);
+            color = new Color(c);
         }
     }
 
@@ -980,13 +1256,21 @@ Circle = function(x, y, r) {
     */
     this.setBorderColor = function(c) {
         if (c instanceof Color) {
-            borderColor = c;
+            color = c;
+        } else if (typeof c != 'string') {
+            throw new Error("Circle.setBorderColor(): Argument must be a color object or a valid string");
         } else {
-            borderColor = new Color(c);
+            color = new Color(c);
         }
     }
 
     this.move = function(xm, ym) {
+    	if (arguments.length != 2) {
+            throw new Error("Circle.move(): Function must have exactly 2 arguments");
+        } else if (typeof(x + y) != 'number') {
+            throw new Error("Circle.move(): Arguments must be numbers");
+        }
+        
         x += xm;
         y += ym;
     }
