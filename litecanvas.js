@@ -196,6 +196,7 @@ LiteCanvas = function(name, height, width) {
     var name = name;
     var height = height;
     var width = width;
+    var iterator = 0;
 
     //Bind to the HTML canvas element and store it in a private scope variable
     var canvas = document.getElementById(name);
@@ -204,7 +205,7 @@ LiteCanvas = function(name, height, width) {
     //Variables to store user defined elements
     Colors = {};
     Shapes = {
-        'unlabeled': []
+
     };
 
     //Override height and width values if a parameter was specified
@@ -259,10 +260,26 @@ LiteCanvas = function(name, height, width) {
 			s 				Shape object to be saved for later use
     */
     this.addShape = function(s) {
-        if (s.name) {
-            Shapes[s.name] = s;
+        if (typeof s === 'object') {
+            Shapes[iterator] = s;
+            iterator++;
         } else {
-            Shapes['unlabeled'].push(s);
+            throw new Error("LiteCanvas.addShape(): Argument must be a shape object");
+        }
+
+    }
+
+    /*
+		Public METHOD to remove one shape from the canvas
+
+		params
+			s 				Shape object to be removed
+    */
+    this.deleteShape = function(s) {
+        for (var key in Shapes) {
+            if (Shapes[key] === s) {
+                delete Shapes[key];
+            }
         }
     }
 
@@ -360,6 +377,7 @@ Color = function(c, name) {
         green = Math.floor((green + m.getGreen()) / 2);
         blue = Math.floor((blue + m.getBlue()) / 2);
     }
+
 }
 
 /*
@@ -503,15 +521,16 @@ Arc = function(x, y, r, s, d) {
     var s = s;
     var d = d * Math.PI / 180;
 
-    if (arguments.length != 4) {
+    if (arguments.length != 5) {
         throw new Error("Arc(): Arc definition must contain 5 arguments");
     } else if (typeof(x + y + r + s + d) != 'number') {
         throw new Error("Arc(): Coordinate arguments must be numbers");
     }
 
     //Defaults
-    weight = 1;
-    color = new Color('black');
+    borderWeight = 1;
+    borderColor = new Color('black');
+    fillColor = null;
 
     /*
 		Public METHOD to set the Arc weight
@@ -519,13 +538,13 @@ Arc = function(x, y, r, s, d) {
 		params:
 			w 			Desired width of the Arc in pixels
     */
-    this.setWeight = function(w) {
+    this.setBorderWeight = function(w) {
         if (arguments.length != 1) {
             throw new Error("Arc.setWeight(): Function must have exactly 1 argument");
         } else if (typeof w != 'number') {
             throw new Error("Arc.setWeight(): Argument must be a number");
         }
-        weight = w;
+        borderWeight = w;
     }
 
     /*
@@ -534,13 +553,23 @@ Arc = function(x, y, r, s, d) {
 		params:
 			c			Desired color of the Arc as a color object or valid string
     */
-    this.setColor = function(c) {
+    this.setBorderColor = function(c) {
         if (c instanceof Color) {
-            color = c;
+            borderColor = c;
         } else if (typeof c != 'string') {
-            throw new Error("Arc.setColor(): Argument must be a color object or a valid string");
+            throw new Error("Arc.setBorderColor(): Argument must be a color object or a valid string");
         } else {
-            color = new Color(c);
+            borderColor = new Color(c);
+        }
+    }
+
+    this.setFillColor = function(c) {
+        if (c instanceof Color) {
+            fillColor = c;
+        } else if (typeof c != 'string') {
+            throw new Error("Arc.setFillColor(): Argument must be a color object or a valid string");
+        } else {
+            fillColor = new Color(c);
         }
     }
 
@@ -562,9 +591,9 @@ Arc = function(x, y, r, s, d) {
     }
 
     this.rotate = function(dr) {
-        if (!(arguments.length === 1 || arguments.length === 3)) {
-            throw new Error("Arc.rotate(): Function must have one or three arguments");
-        } else if (typeof(xr + yr + d) != 'number') {
+        if (!(arguments.length === 1)) {
+            throw new Error("Arc.rotate(): Function must have one argument");
+        } else if (typeof dr != 'number') {
             throw new Error("Arc.rotate(): Arguments must be numbers");
         }
 
@@ -574,8 +603,13 @@ Arc = function(x, y, r, s, d) {
     this.draw = function(context) {
         context.beginPath();
         context.arc(x, y, r, s, s + d);
-        context.lineWidth = weight;
-        context.strokeStyle = color.toString();
+        context.lineWidth = borderWeight;
+        context.strokeStyle = borderColor.toString();
+        if (fillColor) {
+            context.closePath();
+            context.fillStyle = fillColor.toString();
+            context.fill();
+        }
         context.stroke();
 
     }
@@ -743,7 +777,7 @@ Rectangle = function(xstart, ystart, xend, yend) {
     var y = [ystart, yend, yend, ystart];
 
     if (arguments.length != 4) {
-        throw new Error("Rectangle(): Rectangle definition must contain 6 arguments");
+        throw new Error("Rectangle(): Rectangle definition must contain 4 arguments");
     } else if (typeof(xstart + xend + ystart + yend) != 'number') {
         throw new Error("Rectangle(): Coordinate arguments must be numbers");
     }
@@ -889,7 +923,7 @@ Quad = function(x0, y0, x1, y1, x2, y2, x3, y3) {
     var x = [x0, x1, x2, x3];
     var y = [y0, y1, y2, y3];
 
-    if (arguments.length != 6) {
+    if (arguments.length != 8) {
         throw new Error("Quad(): Quad definition must contain 8 arguments");
     } else if (typeof(x0 + x1 + x2 + x3 + y0 + y1 + y2 + y3) != 'number') {
         throw new Error("Quad(): Coordinate arguments must be numbers");
@@ -1189,7 +1223,6 @@ Polygon = function(x, y) {
         context.stroke();
     }
 }
-
 /*
 
 	CLASS to hold a Circle shape and allow manipulation on it
@@ -1207,7 +1240,7 @@ Circle = function(x, y, r) {
 
     if (arguments.length != 3) {
         throw new Error("Circle(): Circle definition must contain 3 arguments");
-    } else if (typeof(x0 + x1 + x2 + x3 + y0 + y1 + y2 + y3) != 'number') {
+    } else if (typeof(x + y + r) != 'number') {
         throw new Error("Circle(): Coordinate arguments must be numbers");
     }
 
@@ -1223,7 +1256,7 @@ Circle = function(x, y, r) {
 			w 			Desired width of the line in pixels
     */
     this.setBorderWeight = function(w) {
-    	if (arguments.length != 1) {
+        if (arguments.length != 1) {
             throw new Error("Circle.setBorderWeight(): Function must have exactly 1 argument");
         } else if (typeof w != 'number') {
             throw new Error("Circle.setBorderWeight(): Argument must be a number");
@@ -1265,12 +1298,12 @@ Circle = function(x, y, r) {
     }
 
     this.move = function(xm, ym) {
-    	if (arguments.length != 2) {
+        if (arguments.length != 2) {
             throw new Error("Circle.move(): Function must have exactly 2 arguments");
         } else if (typeof(x + y) != 'number') {
             throw new Error("Circle.move(): Arguments must be numbers");
         }
-        
+
         x += xm;
         y += ym;
     }
