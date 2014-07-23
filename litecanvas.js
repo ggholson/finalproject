@@ -231,10 +231,8 @@ LiteCanvas = function(name, height, width) {
     /*
 
 		Public METHOD to set the background color of the canvas
-
 		params
 			bgcolor 		Color to set the background to. Accepts a Color object, plain text CSS value, or hex-encoded rgb string
-
     */
     this.setBGColor = function(bgcolor) {
         if (!(typeof bgcolor === 'string')) {
@@ -245,24 +243,20 @@ LiteCanvas = function(name, height, width) {
     }
 
     /*
-
 		Public METHOD to save a user defined color
 
 		params
 			c 				Color object to be saved for later use
-
     */
     this.addColor = function(c) {
         Colors[c.name] = c;
     }
 
     /*
-
 		Public METHOD to save a user defined color
 
 		params
 			s 				Shape object to be saved for later use
-
     */
     this.addShape = function(s) {
         if (s.name) {
@@ -273,27 +267,21 @@ LiteCanvas = function(name, height, width) {
     }
 
     /*
-
 		Public METHOD to clear the canvas of all shapes and start over
-	
     */
     this.deleteAll = function() {
         Shapes = [];
     }
 
     /*
-
 		Public METHOD to remove all elements from the canvas while preserving the drawing
-	
     */
     this.clearAll = function() {
         context.clearRect(0, 0, width, height);
     }
 
     /*
-
-		Public METHOD to redraw all shapes in the saved objects
-	
+		Public METHOD to redraw all shapes in the saved objects	
     */
     this.redraw = function() {
         this.clearAll();
@@ -339,9 +327,7 @@ Color = function(c, name) {
     var alpha = 1;
 
     /*
-
 		Public METHOD to return the colors representation as a hex encoded RGB string
-
     */
     this.toString = function() {
         return rgb(red, green, blue);
@@ -359,39 +345,58 @@ Color = function(c, name) {
     }
 
     /*
-
 		Public METHOD to blend two colors and store the resulting value
 
 		params:
 			m 			String or color value to blend with the current color
-
     */
     this.blend = function(m) {
+        //Check if new blend color needs to be instatiated before blending
         if (typeof m === 'string') {
             m = new Color(m);
         }
+        //Average the RGB values
         red = Math.floor((red + m.getRed()) / 2);
         green = Math.floor((green + m.getGreen()) / 2);
         blue = Math.floor((blue + m.getBlue()) / 2);
     }
 }
 
-Line = function(xstart, ystart, xend, yend, name) {
+/*
 
-    if (name) {
-        this.name = name;
-    }
+	CLASS to hold a line shape and allow manipulation on it
+
+	params:
+		x,y 		Coordinate components of the lines start and endpoints
+
+*/
+Line = function(xstart, ystart, xend, yend) {
+    //Private variables to hold local scope coordinates
     var xstart = xstart;
     var ystart = ystart;
     var xend = xend;
     var yend = yend;
+
+    //Defaults
     var weight = 1;
     var color = new Color("black");
 
+    /*
+		Public METHOD to set the line weight
+
+		params:
+			w 			Desired width of the line in pixels
+    */
     this.setWeight = function(w) {
         weight = w;
     }
 
+    /*
+		Public METHOD to set the line color
+
+		params:
+			c			Desired color of the line as a color object or valid string
+    */
     this.setColor = function(c) {
         if (c instanceof Color) {
             color = c;
@@ -400,6 +405,12 @@ Line = function(xstart, ystart, xend, yend, name) {
         }
     }
 
+    /*
+		Public METHOD to move the line by an even number of pixels
+
+		params:
+			x,y 		Distance to move each endpoint in pixels
+    */
     this.move = function(x, y) {
         xstart += x;
         ystart += y;
@@ -407,11 +418,19 @@ Line = function(xstart, ystart, xend, yend, name) {
         yend += y;
     }
 
-    this.rotate = function(d) {
+    /*
+		Public METHOD to rotate the line around its midpoint
+
+		params:
+			d 			Angle to rotate the line by
+    */
+    this.rotate = function(d, xr, yr) {
         var theta = d * Math.PI / 180
 
-        var midx = Math.abs(xend - xstart);
-        var midy = Math.abs(yend - ystart);
+        if (xr) midx = xr;
+        else midx = Math.abs(xend - xstart);
+        if (yr) midy = yr;
+        else midy = Math.abs(yend - ystart);
 
         nxs = (xstart - midx) * Math.cos(theta) - (ystart - midy) * Math.sin(theta) + midx;
         nys = (xstart - midx) * Math.sin(theta) + (ystart - midy) * Math.cos(theta) + midy;
@@ -424,6 +443,33 @@ Line = function(xstart, ystart, xend, yend, name) {
         yend = nye;
     }
 
+    /*
+		Public METHOD to rotate the line around a fixed point
+
+		params:
+			d 			Angle to rotate the line by
+			x,y 		Coordinates of the point to rotate around
+    */
+    this.pointRotate = function(d, x, y) {
+        var theta = d * Math.PI / 180
+
+        nxs = (xstart - x) * Math.cos(theta) - (ystart - y) * Math.sin(theta) + x;
+        nys = (xstart - x) * Math.sin(theta) + (ystart - y) * Math.cos(theta) + y;
+        nxe = (xend - x) * Math.cos(theta) - (yend - y) * Math.sin(theta) + x;
+        nye = (xend - x) * Math.sin(theta) + (yend - y) * Math.cos(theta) + y;
+
+        xstart = nxs;
+        ystart = nys;
+        xend = nxe;
+        yend = nye;
+    }
+
+    /*
+		Public METHOD to draw the line onto the canvas using HTML canvas methods
+
+		params:
+			context 		Canvas drawing object passed from the rendering surface
+    */
     this.draw = function(context) {
         context.beginPath();
         context.moveTo(xstart, ystart);
@@ -434,6 +480,387 @@ Line = function(xstart, ystart, xend, yend, name) {
     }
 
 }
+
+/*
+
+	CLASS to hold a Rectangle shape and allow manipulation on it
+
+	params:
+		x,y 		Coordinate components of the lines start and endpoints
+
+*/
+Rectangle = function(xstart, ystart, xend, yend) {
+    //Private variables to hold local scope coordinates
+    var x = [xstart, xstart, xend, xend];
+    var y = [ystart, yend, yend, ystart];
+
+    //Defaults
+    var borderWeight = 1;
+    var fillColor = new Color("black");
+    var borderColor = new Color("black");
+
+    /*
+		Public METHOD to set the border weight
+
+		params:
+			w 			Desired width of the line in pixels
+    */
+    this.setBorderWeight = function(w) {
+        borderWeight = w;
+    }
+
+    /*
+		Public METHOD to set the fill color
+
+		params:
+			c			Desired color of the line as a color object or valid string
+    */
+    this.setFillColor = function(c) {
+        if (c instanceof Color) {
+            fillColor = c;
+        } else {
+            fillColor = new Color(c);
+        }
+    }
+
+    /*
+		Public METHOD to set the border color
+
+		params:
+			c			Desired color of the line as a color object or valid string
+    */
+    this.setBorderColor = function(c) {
+        if (c instanceof Color) {
+            borderColor = c;
+        } else {
+            borderColor = new Color(c);
+        }
+    }
+
+    /*
+		Public METHOD to move the rectangle by an even number of pixels
+
+		params:
+			x,y 		Distance to move each endpoint in pixels
+    */
+    this.move = function(xm, ym) {
+        for (i = 0; i < x.length; i++) {
+            x[i] += xm;
+            y[i] += ym;
+        }
+    }
+
+
+    /*
+		Public METHOD to rotate the rectangle around a point
+
+		params:
+			d 			Angle to rotate the line by
+			xr, yr 		Point to pivot around. Defaults to center of the object if none is specified
+    */
+    this.rotate = function(d, xr, yr) {
+        var theta = d * Math.PI / 180
+        var xmid;
+        var ymid;
+
+        if (xr) xmid = xr;
+        else xmid = Math.abs(xend - xstart);
+        if (yr) ymid = yr;
+        else ymid = Math.abs(yend - ystart);
+
+        for (i = 0; i < 4; i++) {
+            newx = (x[i] - xmid) * Math.cos(theta) - (y[i] - ymid) * Math.sin(theta) + xmid;
+            newy = (x[i] - xmid) * Math.sin(theta) + (y[i] - ymid) * Math.cos(theta) + ymid;
+
+            x[i] = newx;
+            y[i] = newy;
+        }
+    }
+
+    /*
+		Public METHOD to draw the shape onto the canvas using HTML canvas methods
+
+		params:
+			context 		Canvas drawing object passed from the rendering surface
+    */
+    this.draw = function(context) {
+        context.beginPath();
+        context.strokeStyle = borderColor.toString();
+        context.beginPath();
+        context.moveTo(x[3], y[3]);
+        context.lineTo(x[0], y[0]);
+        context.lineTo(x[1], y[1]);
+        context.lineTo(x[2], y[2]);
+        context.lineTo(x[3], y[3]);
+        context.closePath();
+        context.lineWidth = borderWeight;
+        context.fillStyle = fillColor.toString();
+        context.strokeStyle = borderColor.toString();
+        context.fill();
+        context.stroke();
+    }
+}
+
+
+/*
+
+	CLASS to hold a Quadrilateral shape and allow manipulation on it
+
+	params:
+		x,y 		Coordinate components of the lines start and endpoints
+
+*/
+Quad = function(x0, y0, x1, y1, x2, y2, x3, y3) {
+    //Private variables to hold local scope coordinates
+    var x = [x0, x1, x2, x3];
+    var y = [y0, y1, y2, y3];
+
+    //Defaults
+    var borderWeight = 1;
+    var fillColor = new Color("black");
+    var borderColor = new Color("black");
+
+    /*
+		Public METHOD to set the border weight
+
+		params:
+			w 			Desired width of the line in pixels
+    */
+    this.setBorderWeight = function(w) {
+        borderWeight = w;
+    }
+
+    /*
+		Public METHOD to set the fill color
+
+		params:
+			c			Desired color of the line as a color object or valid string
+    */
+    this.setFillColor = function(c) {
+        if (c instanceof Color) {
+            fillColor = c;
+        } else {
+            fillColor = new Color(c);
+        }
+    }
+
+    /*
+		Public METHOD to set the border color
+
+		params:
+			c			Desired color of the line as a color object or valid string
+    */
+    this.setBorderColor = function(c) {
+        if (c instanceof Color) {
+            borderColor = c;
+        } else {
+            borderColor = new Color(c);
+        }
+    }
+
+    /*
+		Public METHOD to move the shape by an even number of pixels
+
+		params:
+			x,y 		Distance to move each endpoint in pixels
+    */
+    this.move = function(xm, ym) {
+        for (i = 0; i < x.length; i++) {
+            x[i] += xm;
+            y[i] += ym;
+        }
+    }
+
+
+    /*
+		Public METHOD to rotate the shape around a point
+
+		params:
+			d 			Angle to rotate the line by
+			xr, yr 		Point to pivot around. Defaults to center of the object if none is specified
+    */
+    this.rotate = function(d, xr, yr) {
+        var theta = d * Math.PI / 180
+        var xmid;
+        var ymid;
+
+        if (xr) xmid = xr;
+        else xmid = (x[0] + x[1] + x[2] + x[3]) / 4
+        if (yr) ymid = yr;
+        else ymid = (y[0] + y[1] + y[2] + y[3]) / 4;
+
+        for (i = 0; i < 4; i++) {
+            newx = (x[i] - xmid) * Math.cos(theta) - (y[i] - ymid) * Math.sin(theta) + xmid;
+            newy = (x[i] - xmid) * Math.sin(theta) + (y[i] - ymid) * Math.cos(theta) + ymid;
+
+            x[i] = newx;
+            y[i] = newy;
+        }
+
+
+    }
+
+
+    /*
+		Public METHOD to draw the line onto the canvas using HTML canvas methods
+
+		params:
+			context 		Canvas drawing object passed from the rendering surface
+    */
+    this.draw = function(context) {
+        context.beginPath();
+        context.strokeStyle = borderColor.toString();
+        context.beginPath();
+        context.moveTo(x[3], y[3]);
+        context.lineTo(x[0], y[0]);
+        context.lineTo(x[1], y[1]);
+        context.lineTo(x[2], y[2]);
+        context.lineTo(x[3], y[3]);
+        context.closePath();
+        context.lineWidth = borderWeight;
+        context.fillStyle = fillColor.toString();
+        context.strokeStyle = borderColor.toString();
+        context.fill();
+        context.stroke();
+    }
+}
+
+/*
+
+	CLASS to hold a Quadrilateral shape and allow manipulation on it
+
+	params:
+		x,y 		Coordinate components of the lines start and endpoints
+
+*/
+Polygon = function(x, y) {
+    //Private variables to hold local scope coordinates
+    var x = x;
+    var y = y;
+
+    if (x.length != y.length || x.length < 4) {
+        return false;
+    }
+
+    //Defaults
+    var borderWeight = 1;
+    var fillColor = new Color("black");
+    var borderColor = new Color("black");
+
+    /*
+		Public METHOD to set the border weight
+
+		params:
+			w 			Desired width of the line in pixels
+    */
+    this.setBorderWeight = function(w) {
+        borderWeight = w;
+    }
+
+    /*
+		Public METHOD to set the fill color
+
+		params:
+			c			Desired color of the line as a color object or valid string
+    */
+    this.setFillColor = function(c) {
+        if (c instanceof Color) {
+            fillColor = c;
+        } else {
+            fillColor = new Color(c);
+        }
+    }
+
+    /*
+		Public METHOD to set the border color
+
+		params:
+			c			Desired color of the line as a color object or valid string
+    */
+    this.setBorderColor = function(c) {
+        if (c instanceof Color) {
+            borderColor = c;
+        } else {
+            borderColor = new Color(c);
+        }
+    }
+
+    /*
+		Public METHOD to move the shape by an even number of pixels
+
+		params:
+			x,y 		Distance to move each endpoint in pixels
+    */
+    this.move = function(xm, ym) {
+        for (i = 0; i < x.length; i++) {
+            x[i] += xm;
+            y[i] += ym;
+        }
+    }
+
+    /*
+		Public METHOD to rotate the shape around a point
+
+		params:
+			d 			Angle to rotate the line by
+			xr, yr 		Point to pivot around. Defaults to center of the object if none is specified
+    */
+    this.rotate = function(d, xr, yr) {
+        var theta = d * Math.PI / 180
+        var xmid;
+        var ymid;
+
+        if (xr && yr) {
+            xmid = xr;
+            ymid = yr;
+        } else {
+            xmid = 0;
+            ymid = 0;
+            for (i = 0; i < x.length; i++) {
+                xmid += x[i];
+                ymid += y[i];
+            }
+            xmid = xmid / x.length;
+            ymid = ymid / y.length;
+        }
+
+        for (i = 0; i < x.length; i++) {
+            newx = (x[i] - xmid) * Math.cos(theta) - (y[i] - ymid) * Math.sin(theta) + xmid;
+            newy = (x[i] - xmid) * Math.sin(theta) + (y[i] - ymid) * Math.cos(theta) + ymid;
+
+            x[i] = newx;
+            y[i] = newy;
+        }
+
+
+    }
+
+
+    /*
+		Public METHOD to draw the line onto the canvas using HTML canvas methods
+
+		params:
+			context 		Canvas drawing object passed from the rendering surface
+    */
+    this.draw = function(context) {
+        context.beginPath();
+        context.strokeStyle = borderColor.toString();
+        context.beginPath();
+        context.moveTo(x[0], y[0]);
+        for (i = 1; i < x.length; i++) {
+            context.lineTo(x[i], y[i]);
+        }
+        context.lineTo(x[0], y[0]);
+        context.closePath();
+        context.lineWidth = borderWeight;
+        context.fillStyle = fillColor.toString();
+        context.strokeStyle = borderColor.toString();
+        context.fill();
+        context.stroke();
+    }
+}
+
+
 
 
 
