@@ -483,6 +483,80 @@ Line = function(xstart, ystart, xend, yend) {
 
 /*
 
+	CLASS to hold a Circle shape and allow manipulation on it
+
+	params:
+		x,y 		Coordinate components of the circle's center
+		r 			Radius of the circle
+		s 			Starting angle of the arc
+		d 			Length of the arc in degrees
+
+*/
+Arc = function(x, y, r, s, d) {
+    //Private variables to hold local scope coordinates
+    var x = x;
+    var y = y;
+    var r = r;
+    var s = s;
+    var d = d * Math.PI / 180;
+
+    //Defaults
+    weight = 1;
+    color = new Color('black');
+
+    /*
+		Public METHOD to set the line weight
+
+		params:
+			w 			Desired width of the line in pixels
+    */
+    this.setWeight = function(w) {
+        weight = w;
+    }
+
+    /*
+		Public METHOD to set the line color
+
+		params:
+			c			Desired color of the line as a color object or valid string
+    */
+    this.setColor = function(c) {
+        if (c instanceof Color) {
+            color = c;
+        } else {
+            color = new Color(c);
+        }
+    }
+
+    /*
+		Public METHOD to move the line by an even number of pixels
+
+		params:
+			x,y 		Distance to move each endpoint in pixels
+    */
+    this.move = function(xm, ym) {
+        x += xm;
+        y += ym;
+    }
+
+    this.rotate = function(dr) {
+        s += dr * Math.PI / 180;
+    }
+
+    this.draw = function(context) {
+        context.beginPath();
+        context.arc(x, y, r, s, s + d);
+        context.lineWidth = weight;
+        context.strokeStyle = color.toString();
+        context.stroke();
+
+    }
+}
+
+
+
+/*
+
 	CLASS to hold a Rectangle shape and allow manipulation on it
 
 	params:
@@ -584,8 +658,6 @@ Rectangle = function(xstart, ystart, xend, yend) {
 			context 		Canvas drawing object passed from the rendering surface
     */
     this.draw = function(context) {
-        context.beginPath();
-        context.strokeStyle = borderColor.toString();
         context.beginPath();
         context.moveTo(x[3], y[3]);
         context.lineTo(x[0], y[0]);
@@ -708,8 +780,6 @@ Quad = function(x0, y0, x1, y1, x2, y2, x3, y3) {
 			context 		Canvas drawing object passed from the rendering surface
     */
     this.draw = function(context) {
-        context.beginPath();
-        context.strokeStyle = borderColor.toString();
         context.beginPath();
         context.moveTo(x[3], y[3]);
         context.lineTo(x[0], y[0]);
@@ -844,8 +914,6 @@ Polygon = function(x, y) {
     */
     this.draw = function(context) {
         context.beginPath();
-        context.strokeStyle = borderColor.toString();
-        context.beginPath();
         context.moveTo(x[0], y[0]);
         for (i = 1; i < x.length; i++) {
             context.lineTo(x[i], y[i]);
@@ -860,8 +928,81 @@ Polygon = function(x, y) {
     }
 }
 
+/*
 
+	CLASS to hold a Circle shape and allow manipulation on it
 
+	params:
+		x,y 		Coordinate components of the circle's center
+		r 			Radius of the circle
+
+*/
+Circle = function(x, y, r) {
+    //Private variables to hold local scope coordinates
+    var x = x;
+    var y = y;
+    var r = r;
+
+    //Defaults
+    var borderWeight = 1;
+    var fillColor = new Color("black");
+    var borderColor = new Color("black");
+
+    /*
+		Public METHOD to set the border weight
+
+		params:
+			w 			Desired width of the line in pixels
+    */
+    this.setBorderWeight = function(w) {
+        borderWeight = w;
+    }
+
+    /*
+		Public METHOD to set the fill color
+
+		params:
+			c			Desired color of the line as a color object or valid string
+    */
+    this.setFillColor = function(c) {
+        if (c instanceof Color) {
+            fillColor = c;
+        } else {
+            fillColor = new Color(c);
+        }
+    }
+
+    /*
+		Public METHOD to set the border color
+
+		params:
+			c			Desired color of the line as a color object or valid string
+    */
+    this.setBorderColor = function(c) {
+        if (c instanceof Color) {
+            borderColor = c;
+        } else {
+            borderColor = new Color(c);
+        }
+    }
+
+    this.move = function(xm, ym) {
+        x += xm;
+        y += ym;
+    }
+
+    this.draw = function(context) {
+        context.beginPath();
+        context.arc(x, y, r, 0, 2 * Math.PI);
+        context.closePath();
+        context.lineWidth = borderWeight;
+        context.fillStyle = fillColor.toString();
+        context.strokeStyle = borderColor.toString();
+        context.fill();
+        context.stroke();
+
+    }
+}
 
 
 //TEST LOOP
