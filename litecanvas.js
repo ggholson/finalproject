@@ -232,8 +232,8 @@ LiteCanvas = function(name, height, width) {
 
     //Private scope variables
     var name = name;
-    var height = height;
-    var width = width;
+    var height;
+    var width;
     var iterator = 0;
 
     //Bind to the HTML canvas element and store it in a private scope variable
@@ -350,6 +350,10 @@ LiteCanvas = function(name, height, width) {
             }
         }
     }
+
+    this.getShapes = function() {
+        return Shapes;
+    }
 }
 
 /*
@@ -428,6 +432,7 @@ Shape = function(coords) {
     this.borderWeight = 1;
     this.borderColor = new Color('black');
     this.fillColor = new Color('black');
+    this.bgimg = null;
 
 
 }
@@ -459,6 +464,40 @@ Shape.prototype.setBorderColor = function(c) {
         throw new Error("Triangle.setBorderColor(): Argument must be a color object or a valid string");
     } else {
         this.borderColor = new Color(c);
+    }
+}
+
+Shape.prototype.setBackgroundImage = function(i) {
+    this.bgimg = i;
+    var w = Math.max.apply(null, this.x) - Math.min.apply(null, this.x);
+    var h = Math.max.apply(null, this.y) - Math.min.apply(null, this.y);
+
+    if (!this.bgimg.x) this.bgimg.x = Math.min.apply(null, this.x);
+    if (!this.bgimg.y) this.bgimg.y = Math.min.apply(null, this.y);
+    if (!this.bgimg.w) this.bgimg.w = w;
+    if (!this.bgimg.h) this.bgimg.h = h;
+
+}
+
+Shape.getBoundingBox = function() {
+    minx = Math.min.apply(null, this.x);
+    miny = Math.min.apply(null, this.y);
+    maxx = Math.max.apply(null, this.x);
+    maxy = Math.min.apply(null, this.y);
+
+    return [[minx, miny], [maxx, maxy]];
+}
+
+Shape.prototype.scale = function(sw, sh) {
+    var xmin;
+    var ymin;
+
+    xmin = Math.min.apply(null, this.x);
+    ymin = Math.min.apply(null, this.y);
+
+    for (i = 0; i < this.x.length; i++) {
+        this.x[i] = ((this.x[i] - xmin) * sw) + xmin;
+        this.y[i] = ((this.y[i] - ymin) * sh) + ymin;
     }
 }
 
@@ -508,6 +547,10 @@ Shape.prototype.rotate = function(d, xr, yr) {
         this.y[i] = newy;
     }
 
+    if (this.bgimg) {
+        this.bgimg.r += d;
+    }
+
 }
 
 Shape.prototype.draw = function(context) {
@@ -522,6 +565,12 @@ Shape.prototype.draw = function(context) {
     context.strokeStyle = this.borderColor.toString();
     context.fill();
     context.stroke();
+
+    if (this.bgimg) {
+        context.globalCompositeOperation = 'source-in';
+        this.bgimg.draw(context);
+        context.globalCompositeOperation = 'source-over';
+    }
 }
 
 
@@ -567,6 +616,10 @@ Arc = function(xy, r, s, d) {
     this.d = d * Math.PI / 180;
     this.fillColor = null;
 
+    this.rotate = function(dr) {
+        this.s += dr * Math.PI / 180;
+    }
+
     this.draw = function(context) {
         context.beginPath();
         context.arc(this.x, this.y, this.r, this.s, this.s + this.d);
@@ -583,10 +636,6 @@ Arc = function(xy, r, s, d) {
 }
 
 Arc.prototype = Object.create(Shape.prototype);
-
-Arc.prototype.rotate = function(dr) {
-    this.s += dr * Math.PI / 180;
-}
 
 /*
 
@@ -694,100 +743,137 @@ Polygon.prototype = Object.create(Shape.prototype);
 		r 			Radius of the circle
 
 */
-Circle = function(x, y, r) {
-    //Private variables to hold local scope coordinates
-    var x = x;
-    var y = y;
-    var r = r;
+Circle = function(xy, r) {
 
-    if (arguments.length != 3) {
-        throw new Error("Circle(): Circle definition must contain 3 arguments");
-    } else if (typeof(x + y + r) != 'number') {
+    if (arguments.length != 2) {
+        throw new Error("Circle(): Circle definition must contain 2 arguments");
+    } else if (typeof(r) != 'number') {
         throw new Error("Circle(): Coordinate arguments must be numbers");
     }
 
-    //Defaults
-    var borderWeight = 1;
-    var fillColor = new Color("black");
-    var borderColor = new Color("black");
+    Shape.call(this, xy);
 
-    /*
-		Public METHOD to set the border weight
-
-		params:
-			w 			Desired width of the line in pixels
-    */
-    this.setBorderWeight = function(w) {
-        if (arguments.length != 1) {
-            throw new Error("Circle.setBorderWeight(): Function must have exactly 1 argument");
-        } else if (typeof w != 'number') {
-            throw new Error("Circle.setBorderWeight(): Argument must be a number");
-        }
-
-        borderWeight = w;
-    }
-
-    /*
-		Public METHOD to set the fill color
-
-		params:
-			c			Desired color of the line as a color object or valid string
-    */
-    this.setFillColor = function(c) {
-        if (c instanceof Color) {
-            color = c;
-        } else if (typeof c != 'string') {
-            throw new Error("Circle.setFillColor(): Argument must be a color object or a valid string");
-        } else {
-            color = new Color(c);
-        }
-    }
-
-    /*
-		Public METHOD to set the border color
-
-		params:
-			c			Desired color of the line as a color object or valid string
-    */
-    this.setBorderColor = function(c) {
-        if (c instanceof Color) {
-            color = c;
-        } else if (typeof c != 'string') {
-            throw new Error("Circle.setBorderColor(): Argument must be a color object or a valid string");
-        } else {
-            color = new Color(c);
-        }
-    }
-
-    this.move = function(xm, ym) {
-        if (arguments.length != 2) {
-            throw new Error("Circle.move(): Function must have exactly 2 arguments");
-        } else if (typeof(x + y) != 'number') {
-            throw new Error("Circle.move(): Arguments must be numbers");
-        }
-
-        x += xm;
-        y += ym;
-    }
+    //Private variables to hold local scope coordinates
+    this.r = r;
 
     this.draw = function(context) {
         context.beginPath();
-        context.arc(x, y, r, 0, 2 * Math.PI);
+        context.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
         context.closePath();
-        context.lineWidth = borderWeight;
-        context.fillStyle = fillColor.toString();
-        context.strokeStyle = borderColor.toString();
+        context.lineWidth = this.borderWeight;
+        context.fillStyle = this.fillColor.toString();
+        context.strokeStyle = this.borderColor.toString();
         context.fill();
         context.stroke();
 
     }
 }
 
+Circle.prototype = Object.create(Shape.prototype);
+
+
+Img = function(src, xy, w, h) {
+    /*
+    if (arguments.length != 4 && arguments.length != 1) {
+        throw new Error("Img(): Function must have 4 arguments");
+    } else if (typeof(xy[0] + xy[1] + w + h) != 'number') {
+        throw new Error("Img(): Arguments xy, w and h must be numbers");
+    } else if (typeof src != 'string') {
+        throw new Error("Img(): Argument src must be a string");
+    }
+    */
+
+    if (xy) {
+        this.x = xy[0];
+        this.y = xy[1];
+    }
+    if (w) {
+        this.w = w;
+    }
+    if (h) {
+        this.h = h;
+    }
+
+    this.src = src;
+    this.img = new Image();
+    this.r = 0;
+
+    this.img.src = src;
+
+    this.cropx;
+    this.cropy;
+    this.cropw;
+    this.croph;
+
+    z = new Image();
+    z.src = 'http://i.stack.imgur.com/uVQ0X.jpg';
+
+    this.setHeight = function(nh) {
+        if (arguments.length != 1) {
+            throw new Error("Img.setHeight(): Function must have 1 argument");
+        } else if (typeof nh != 'number') {
+            throw new Error("Img.setHeight(): New height argument must be a number");
+        }
+
+        this.h = nh;
+    }
+
+    this.setWidth = function(nw) {
+        if (arguments.length != 1) {
+            throw new Error("Img.setWidth(): Function must have 1 argument");
+        } else if (typeof nw != 'number') {
+            throw new Error("Img.setWidth(): New height argument must be a number");
+        }
+
+        this.w = nw;
+    }
+
+    this.scale = function(sw, sh) {
+        this.w *= sw;
+        this.h *= sh;
+    }
+
+    this.move = function(xm, ym) {
+        this.x += xm;
+        this.y += ym;
+    }
+
+    this.crop = function(sx, sy, sw, sh) {
+        this.cropx = sx / this.w * this.img.naturalWidth;
+        this.cropy = sy / this.h * this.img.naturalHeight;
+        this.cropw = sw / this.w * this.img.naturalWidth;
+        this.croph = sh / this.h * this.img.naturalHeight;
+    }
+
+    this.rotate = function(dr) {
+        this.r += dr * Math.PI / 180;
+    }
+
+    this.draw = function(context) {
+        context.save();
+
+        // move to the center of the canvas
+        var axis = [this.x + this.w / 2, this.y + this.h / 2]
+        context.translate(axis[0], axis[1]);
+
+        // rotate the canvas to the specified degrees
+        context.rotate(this.r);
+
+        if (this.cropx && this.cropy && this.cropw && this.croph) {
+            context.drawImage(this.img, this.cropx, this.cropy, this.cropw, this.croph, this.x - axis[0], this.y - axis[1], this.w, this.h);
+        } else if (this.w && this.h) {
+            context.drawImage(this.img, this.x - axis[0], this.y - axis[1], this.w, this.h);
+        } else {
+            context.drawImage(this.img, this.x - axis[0], this.y - axis[1]);
+        }
+
+        context.restore();
+    }
+
+}
+
 
 //TEST LOOP
 $(document).ready(function() {
-    x = new LiteCanvas('c');
-    console.log(x);
-    c = new Color('red');
-    x.setBGColor(c);
+
 });
