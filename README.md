@@ -1,4 +1,4 @@
-ObjectCanvas
+LiteCanvas
 ============
 
 Description:
@@ -9,47 +9,92 @@ NOTE:	Unless specified, all functions return true if the arguments are valid and
 
 ============
 
-ObjectCanvas
+LiteCanvas
 	
 	Description:	
 		Main object for rendering of canvas elements
 
 	Constructors:
-		ObjectCanvas(name), ObjectCanvas(name, height, width)
-			params
+		LiteCanvas(name), LiteCanvas(name, height, width)
+			params:
 				name:		ID of the HTML element on the page to bind to
 				height:		Max value of the y-axis in the coordinate system
 				width:		Max value of the y-axis in the coordinate system
 
-			default
+			default:
 				name:		*Required*
 				height:		Inherited from HTML element height attribute
 				width:		Inherited from HTML element width attribute
 
 	Public Functions:
-		getName(), getHeight(), getWidth()
-			return
+		getHeight(), getWidth()
+			return:
 				Returns this.[property] of the given object
 
-		getBG()
-			return
-				Returns this.pattern if a background pattern is set, otherwise returns this.bgcolor
+		setBackgroundColor(c)
+			Description:
+							Sets the background of the canvas to a solid color
+			params:
+				c:			Color object or valid string denoting the color
+			returns:
+				none
 
-		setBGColor(string color)
+		setBackgroundImage(i)
+			Description:
+							Sets the background of the canvas to a static image
 			params
-				color:		String containing the color to set as the background. Accepts color names or #FFFFFF hex values
+				i:			Img object to be used as the background image
+			returns:
+				none
 
-			return
-				true if the color will be used as the background(there is no pattern)
-				else false
+		addShape(s)
+			Description:
+							Adds a shape to the rendering surface of the canvas
+			params:
+				s:			Shape object that will be rendered on the next redraw()
+			returns:
+				none
 
-		setBGPattern(Pattern p)
-			params
-				p:			Pattern object to be used as the background
+		deleteShape(s)
+			Description:
+							Removes a specific shape from the rendering surface. Will update on next redraw().
+			params:
+				s:			Specific Shape to be removed
+			returns:
+				none
 
-			return
-				None
+		deleteAll()
+			Description:
+							Removes all objects from the rendering surface on the next redraw();
+			params:
+				none
+			returns:
+				none
 
+		clearAll()
+			Description:
+							Draws a blank canvas. Does not remove existing Shapes. Will be overwritten on next redraw().
+			params:
+				none
+			returns:
+				none
+
+		getShapes()
+			Description:
+							Returns an object containing all of the Shape objects in the current canvas
+			params:
+				none
+			returns:
+				An object full of Shape objects
+
+		redraw()
+			Description:
+							Clears the canvas and redraws all of the Shape objects added to the canvas.
+			params:
+				none
+			returns:
+				none
+				
 ========================
 
 ObjectCanvas.Color
