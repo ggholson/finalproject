@@ -158,17 +158,13 @@ $(document).ready(function() {
     });
 
     $(document).bind('keydown', function(event) {
-        console.log(event.which + ' pressed');
         if (event.which === 65) {
             shipvelocity = -10;
-            console.log('ship:' + shipvelocity);
         } else if (event.which === 68) {
             shipvelocity = 10;
-            console.log('ship:' + shipvelocity);
         } else if (event.which === 32) {
             bullets[shots] = new Bullet(images.ship);
             bullets[shots].draw();
-            console.log(bullets);
             shots++;
             canvas.redraw();
         }
@@ -176,13 +172,10 @@ $(document).ready(function() {
     });
 
     $(document).bind('keyup', function(event) {
-        console.log(event.which + ' released');
         if (event.which === 65) {
             shipvelocity = 0;
-            console.log('ship:' + shipvelocity);
         } else if (event.which === 68) {
             shipvelocity = 0;
-            console.log('ship:' + shipvelocity);
         }
 
 
