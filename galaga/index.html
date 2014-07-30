@@ -5,15 +5,6 @@
 <link href='http://fonts.googleapis.com/css?family=Ubuntu+Mono' rel='stylesheet' type='text/css'>
 
 <style>
-	#sidebar{
-		height:650px;
-		width:200px;
-		display:inline-block;
-		margin: 0;
-		vertical-align: top;
-		padding: 70px;
-		box-sizing: border-box;
-	}
 	#c{
 		height:650px;
 		width:650px;
@@ -27,7 +18,7 @@
 	#score{
 		position:fixed;
 		top: 10px;
-		left:700px;
+		left:500px;
 		color:red;
 		z-index:9999;
 		font-family: 'Ubuntu Mono';
@@ -35,9 +26,17 @@
 	#gameover{
 		position:fixed;
 		top:350px;
-		left:450px;
+		left:250px;
 		color:red;
 		opacity:0;
+		font-family: 'Ubuntu Mono';
+	}
+	#start{
+		position:fixed;
+		top:400px;
+		left:200px;
+		color:red;
+		opacity:1;
 		font-family: 'Ubuntu Mono';
 	}
 	body{
@@ -48,14 +47,11 @@
 
 <body>
 
-<div id='sidebar'>
-	<button type='button' id='newgame'>New Game</button>
-
-</div>
 <canvas id="c" height=1000 width=1000></canvas>
 
 <h2 id='score'>Score: 0</h2>
 <h1 id="gameover">Game Over</h1>
+<h2 id='start'>Press Enter to Start</h2>
 
 </body>
 

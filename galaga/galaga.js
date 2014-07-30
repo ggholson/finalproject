@@ -1,4 +1,4 @@
-var gameStatus = 'loading';
+var gameStatus = 'stopped';
 var canvas;
 var shots = 0;
 var bullets = {};
@@ -9,6 +9,14 @@ var enemyposition = [0, 0];
 var enemyvelocity = [2, 0];
 var firerate = .995;
 var score = 0;
+var map = {
+    37: false,
+    39: false,
+    65: false,
+    68: false,
+    32: false
+};
+var cooldown = 0;
 
 var images = {
     bg: null,
@@ -40,41 +48,43 @@ Bullet = function(type) {
 function gameOver() {
     canvas.deleteAll();
     $('#gameover').css('opacity', 1);
-}
-
-function newEnemies() {
-
+    $('#start').css('opacity', 1);
 }
 
 function update() {
     if (gameStatus === 'ready') {
+
+        if (map[37] || map[65]) {
+            shipvelocity = -10;
+        } else if (map[39] || map[68]) {
+            shipvelocity = 10;
+        }
+        if (map[32] && cooldown <= 0) {
+            bullets[shots] = new Bullet(images.ship);
+            bullets[shots].draw();
+            shots++;
+            cooldown = 5;
+        }
+
         for (var key in bullets) {
             if (bullets[key].type === 'player') {
                 bullets[key].shape.move(0, -15);
-            } else {
-                bullets[key].shape.move(0, 10);
-            }
-
-            if (bullets[key].type === "player") {
                 for (var n in enemies) {
-                    if (bullets[key].shape.x[0] >= enemies[n].x && bullets[key].shape.x[0] <= (enemies[n].x + enemies[n].w)) {
-                        if (bullets[key].shape.y[1] <= (enemies[n].y + enemies[n].h) && bullets[key].shape.y[0] >= enemies[n].y) {
-                            canvas.deleteShape(enemies[n]);
-                            delete enemies[n];
-                            canvas.deleteShape(bullets[key].shape);
-                            delete bullets[key];
-                            numEnemies--;
-                            score += 10;
-                            $('#score').html("Score: " + score);
-                        }
+                    if (bullets[key].shape.intersect(enemies[n])) {
+                        canvas.deleteShape(enemies[n]);
+                        delete enemies[n];
+                        canvas.deleteShape(bullets[key].shape);
+                        delete bullets[key];
+                        numEnemies--;
+                        score += 10;
+                        $('#score').html("Score: " + score);
                     }
                 }
             } else {
-                if (bullets[key].shape.x[0] > images.ship.x && bullets[key].shape.x[0] < (images.ship.x + images.ship.w)) {
-                    if (bullets[key].shape.y[1] <= (images.ship.y + images.ship.h) && bullets[key].shape.y[0] >= images.ship.y) {
-                        gameStatus = 'over';
-                        gameOver();
-                    }
+                bullets[key].shape.move(0, 10);
+                if (bullets[key].shape.intersect(images.ship)) {
+                    gameStatus = 'stopped';
+                    gameOver();
                 }
             }
 
@@ -123,10 +133,12 @@ function update() {
                 canvas.addShape(enemies[i]);
             }
         }
+        cooldown--;
 
         canvas.redraw();
     }
 }
+
 
 function init() {
     gameStatus = 'ready';
@@ -141,46 +153,33 @@ function init() {
     canvas.redraw();
     $('#score').html("Score: " + score);
     $('#gameover').css('opacity', 0);
-
+    $('#start').css('opacity', 0);
 }
 
 $(document).ready(function() {
     canvas = new LiteCanvas('c');
-    images.bg = new Img('imgs/bg.png', [0, 0], 1200, 1411);
+    images.bg = new Img('imgs/bg.png', [0, -400], 1200, 1411);
     images.ship = new Img('imgs/ship.png', [480, 950], 40, 26);
     images.enemy = new Img('imgs/enemy.png', [0, 0], 38, 28);
 
     canvas.setBackgroundImage(images.bg);
     canvas.redraw();
 
-    $('#newgame').on("click", function() {
-        init();
-    });
-
-    $(document).bind('keydown', function(event) {
-        if (event.which === 65) {
-            shipvelocity = -10;
-        } else if (event.which === 68) {
-            shipvelocity = 10;
-        } else if (event.which === 32) {
-            bullets[shots] = new Bullet(images.ship);
-            bullets[shots].draw();
-            shots++;
-            canvas.redraw();
+    $(document).keydown(function(e) {
+        if (e.keyCode === 13 && gameStatus === 'stopped') {
+            init();
         }
-
-    });
-
-    $(document).bind('keyup', function(event) {
-        if (event.which === 65) {
-            shipvelocity = 0;
-        } else if (event.which === 68) {
-            shipvelocity = 0;
+        if (e.keyCode in map) {
+            map[e.keyCode] = true;
         }
-
-
+    }).keyup(function(e) {
+        if (e.keyCode in map) {
+            map[e.keyCode] = false;
+            if (e.keyCode === 37 || e.keyCode === 39 || e.keyCode === 65 || e.keyCode === 68) {
+                shipvelocity = 0;
+            }
+        }
     });
-
 
     var FPS = 30;
     setInterval(function() {

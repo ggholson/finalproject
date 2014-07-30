@@ -94,7 +94,7 @@ LiteCanvas
 				none
 			returns:
 				none
-				
+
 ========================
 
 ObjectCanvas.Color
@@ -173,56 +173,66 @@ ObjectCanvas.Color
 
 ========================
 
-ObjectCanvas.Shape
+LiteCanvas.Shape
 
 	Description:	
 		Base class for all shape based objects
 
 	Public Functions:
-		setBorderColor(string c), setBorderColor(Color c)
-			params
+		setBorderColor(c), setBackgroundColor(c)
+			Description:
+								Sets the background/border to a solid color
+			params:
 				c 				Color object to set border to (dynamically generated if string provided)
+			returns:
+				none
 
-		setBorderWeight(int w)
-			params
+		setBorderWeight(w)
+			Description:
+								Sets the border thickness to w in pixels
+			params:
 				w				width of the boder in pixels
+			returns:
+				none
 
-		setBackgroundColor(string c), setBackgroundColor(Color c)
-			params
-				c 				Color object to set background to (dynamically generated if string provided)
-
-		setBackgroundPattern(Pattern p)
-			params
-				p 				Pattern object to set background to (dynamically generated if string provided)
-
-		setZindex(int z)
-			params
-				z				Z index of object
-
-		rotate(int degrees)
-			params
+		rotate(degrees), rotate(degrees, x, y)
+			Description:
+								Rotates the shape around a set point
+			params:
 				degrees			Number of degrees clockwise to rotate the object
+				x				The x coordinate of the axis of rotation
+				y				The y coordinate of the axis of rotation
+			defaults:
+				x, y			The center of the Shape object
+			returns:
+				none
 
-		move(int x, int y)
-			params
-				x				Number of coordinates in the positive x direction to move the object
-				y				Number of coordinates in the positive y direction to move the object
+		move(x, y)
+			Descriptions:
+								Move the object a fixed distance across the canvas
+			params:
+				x				Number of pixels in the positive x direction to move the object
+				y				Number of pixels in the positive y direction to move the object
+			returns:
+				none
 
-		stretch(int x, int y)
-			params
+		scale(x, y)
+			Description:
+								Scale the object by a given factor in the x and y direction
+			params:
 				x				Factor to stretch object by in the x direction
 				y				Factor to stretch object by in the y direction
+			returns:
+				none
 		
-		overlap(), overlap(Shape s)
-			params
-				s 				Shape to detect overlap with
-
-			default
-				s 				All shapes in current ObjectCanvas
-
-			return
-				true if current shape overlaps with any other or specified shape object
-				else false
+		draw()
+			Description:
+								Adds the object to the canvas. Automatically invoked when LiteCanvas.redraw() is called.
+			params:
+				none
+			returns:
+				none
+		
 
 ObjectCanvas.line extends Shape
 	

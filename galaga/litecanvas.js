@@ -212,10 +212,6 @@ function convertCoords(args) {
     return coords;
 }
 
-function validateArgs(args) {
-
-}
-
 /*
 
 	CLASS to contain the main rendering surface for the canvas
@@ -497,13 +493,26 @@ Shape.prototype.setBackgroundImage = function(i) {
 
 }
 
-Shape.getBoundingBox = function() {
+Shape.prototype.getBoundingBox = function() {
     minx = Math.min.apply(null, this.x);
     miny = Math.min.apply(null, this.y);
     maxx = Math.max.apply(null, this.x);
     maxy = Math.min.apply(null, this.y);
 
     return [[minx, miny], [maxx, maxy]];
+}
+
+Shape.prototype.intersect = function(s) {
+
+    b1 = this.getBoundingBox();
+    b2 = s.getBoundingBox();
+
+    if (b1[0][0] >= b2[0][0] && b1[1][0] <= b2[1][0]) {
+        if (b1[0][1] >= b2[0][1] && b1[1][1] <= b2[1][1]) {
+            return true;
+        }
+    } else return false;
+
 }
 
 Shape.prototype.scale = function(sw, sh) {
@@ -855,14 +864,18 @@ Img = function(src, xy, w, h) {
         this.w = nw;
     }
 
-    this.scale = function(sw, sh) {
-        this.w *= sw;
-        this.h *= sh;
+    this.getBoundingBox = function() {
+        return [[this.x, this.y], [this.x + this.w, this.y + this.h]];
     }
 
     this.move = function(xm, ym) {
         this.x += xm;
         this.y += ym;
+    }
+
+    this.scale = function(sw, sh) {
+        this.w *= sw;
+        this.h *= sh;
     }
 
     this.crop = function(sx, sy, sw, sh) {
@@ -909,6 +922,8 @@ Img = function(src, xy, w, h) {
     }
 
 }
+
+Img.prototype = Object.create(Shape.prototype);
 
 
 //TEST LOOP
