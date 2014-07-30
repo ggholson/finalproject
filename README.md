@@ -97,7 +97,7 @@ LiteCanvas
 
 ========================
 
-ObjectCanvas.Color
+LiteCanvas.Color
 	
 	Description:
 		Object based color abstraction used to store color values with names and/or convert between color identifiers
@@ -179,7 +179,7 @@ LiteCanvas.Shape
 		Base class for all shape based objects
 
 	Public Functions:
-		setBorderColor(c), setBackgroundColor(c)
+		setBorderColor(c), setFillColor(c)
 			Description:
 								Sets the background/border to a solid color
 			params:
@@ -224,6 +224,23 @@ LiteCanvas.Shape
 				y				Factor to stretch object by in the y direction
 			returns:
 				none
+
+		getBoundingBox()
+			Desription:
+								Returns an array containing the minimum and maximum values of the Shape in the x and y coordinate spaces
+			params:
+				none
+			returns:
+								An array of the format [[xmin, ymin],[xmax, ymax]].
+
+		intersect(s)
+			Description:
+								Function to determine if two Shape objects on the canvas are intersecting.
+			params:
+				s 				Shape object to check against the calling Shape object
+			returns:
+				true			If the two Shapes intersect
+				false 			Otherwise
 		
 		draw()
 			Description:
@@ -232,29 +249,182 @@ LiteCanvas.Shape
 				none
 			returns:
 				none
-		
 
-ObjectCanvas.line extends Shape
+============
+
+LiteCanvas.Line()
 	
-	Description: 
-		Object based definition of a line
+	Description:
+		Instance of a Shape object holding a 2 dimensional line
 
 	Constructors:
-		ObjectCanvas.line(int end), line(string name, int end), line(int start, int end), line(string name, int start, int end)
-			params
-				name:		Identifier by which the object can be referenced
-				start:		Starting point for the line in the ObjectCanvas coordinate system
-				end:		Endpoint for the line in the ObjectCanvas coordinate system
+		Line([x0, y0], [x1, y1])
+			params:
+				[x0, y0]		Coordinates of the lines first endpoint
+				[x1, y1]		Coordinates of the lines second endpoint
+
+	Public functions:
+		All inherited from Shape. Fill color and background images have no effect on Line objects.
+
+============
+
+LiteCanvas.Arc()
+	
+	Description:
+		Instance of a Shape object holding a 2 dimensional arc
+
+	Constructors:
+		Arc([x,y], r, s, d)
+			params:
+				[x, y] 			Coordinates of the arcs center
+				r				Radius of the arc in pixels
+				s 				Starting point in degrees
+				d 				Number of degrees to draw from the starting point
+
+	Public functions:
+		All inherited from Shape. Fill color and background images have no effect on Arc objects.
+
+============
+
+LiteCanvas.Triangle()
+	
+	Description:
+		Instance of a Shape object holding a 2 dimensional triangle
+
+	Constructors:
+		Triangle([x0, y0], [x1, y1], [x2, y2])
+			params:
+				[x0, y0]		
+				[x1, y1] 		Coordinates of the triangles vertices
+				[x2, y2]		
+
+	Public functions:
+		All inherited from Shape.
+		
+============
+
+LiteCanvas.Rectangle()
+	
+	Description:
+		Instance of a Shape object holding a 2 dimensional rectangle
+
+	Constructors:
+		Rectangle([x0, y0], [x1, y1])
+			params:
+				[x0, y0]		Coordinates of the first corner of the rectangle
+				[x1, y1] 		Coordinates of the opposite corner
+						
+	Public functions:
+		All inherited from Shape.
+
+
+============
+
+LiteCanvas.Quad()
+	
+	Description:
+		Instance of a Shape object holding a 2 dimensional quadrilateral
+
+	Constructors:
+		Quad([x0, y0], [x1, y1], [x2, y2], [x3, y3])
+			params:
+				[x0, y0]		Coordinates of the four corners of the quadrilateral
+				[x1, y1] 		
+				[x2, y2]
+				[x3, y3]
+						
+	Public functions:
+		All inherited from Shape.
+
+
+============
+
+LiteCanvas.Polygon()
+	
+	Description:
+		Instance of a Shape object holding a 2 dimensional n-sided polygon
+
+	Constructors:
+		Polygon([x0, y0], [x1, y1], [x2, y2], [x3, y3], [x..n, y..n])
+			params:
+				[x0, y0]		Coordinates of the vertices of the polygon
+				[x1, y1] 		
+				[x2, y2]
+				[x3, y3]
+				[x..n, y..n] 	Final vertex of the polygon. Can be used to hold any n-sided polygon.
+						
+	Public functions:
+		All inherited from Shape.
+
+		============
+
+LiteCanvas.Circle()
+	
+	Description:
+		Instance of a Shape object holding a 2 dimensional circle
+
+	Constructors:
+		Circle([x,y], r)
+			params:
+				[x, y] 			Coordinates of the circle's center
+				r				Radius of the circle in pixels
+			
+
+	Public functions:
+		All inherited from Shape.
+
+============
+
+LiteCanvas.Img()
+	
+	Description:
+		Instance of a Shape object holding an image
+
+	Constructors:
+		Img(src), Img(src, [x,y]), Img(src, [x,y], w, h)
+			params:
+				src 			Source URL of the image
+				[x, y] 			Coordinates of the image's upper left corner
+				w				Width of the image in pixels
+				h				Height of the image in pixels
 
 			defaults:
-				name:		Name of previously manipulated object + incremented identifier
-				start:		Last point touched by the user
-				end:		*Required*
+				src 			*Required*
+				[x, y] 			Inherited from object the image is applied to. Used for background drawing.
+				w 				Width of the source image
+				h 				Height of the source image
+				
 
-	Public Functions:
+	Public functions:
+		setHeight(sh), setWidth(sw)
+			Description:
+								Set the height/width of the image to a set value in pixels
+			params:
+				sh				New height/width of the image
+			returns:
+				none
+
+		move(), scale(), rotate(), draw()
+			Inherited from Shape()
+
+		crop(sx, sy, sw, sh)
+			Description:
+								Crops an Img() object
+			params:
+				sx, sy			X and Y coordinate of the new top left corner of the image
+				sw, sh			New width and height of the image, starting from sx and sy.
+			returns:
+				none
+
+		clone()
+			Description:
+								Creates a new Img() object from an existing Img() object
+			params:
+				none
+			returns:
+				none
 
 
-		
 
 
 

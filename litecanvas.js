@@ -457,6 +457,14 @@ Shape = function(coords) {
 
 }
 
+/*
+    
+    Public function to set the border thickness of any Shape object in pixels
+
+    params:
+        w       Width of the border in pixels
+
+*/
 Shape.prototype.setBorderWeight = function(w) {
     if (arguments.length != 1) {
         throw new Error("Triangle.setBorderWeight(): Function must have exactly 1 argument");
@@ -467,6 +475,14 @@ Shape.prototype.setBorderWeight = function(w) {
     this.borderWeight = w;
 }
 
+/*
+
+    Public function for set the background color of any Shape object
+
+    params:
+        c       Color object or valid string to be stored
+    
+*/
 Shape.prototype.setFillColor = function(c) {
     if (c instanceof Color) {
         this.fillColor = c;
@@ -477,6 +493,14 @@ Shape.prototype.setFillColor = function(c) {
     }
 }
 
+/*
+
+    Public function to set the border color of any Shape object
+
+    params:
+        c       Color object or valid string to be stored
+
+*/
 Shape.prototype.setBorderColor = function(c) {
     if (c instanceof Color) {
         this.borderColor = c;
@@ -487,6 +511,14 @@ Shape.prototype.setBorderColor = function(c) {
     }
 }
 
+/*
+
+    Public function to set an image as the background of any Shape object
+
+    params:
+        i       Img object to be used as the background
+
+*/
 Shape.prototype.setBackgroundImage = function(i) {
     this.bgimg = i;
     var w = Math.max.apply(null, this.x) - Math.min.apply(null, this.x);
@@ -499,6 +531,11 @@ Shape.prototype.setBackgroundImage = function(i) {
 
 }
 
+/*
+
+    Public function to return the minimum and maximum x and y coordinates occupied by the shape
+
+*/
 Shape.prototype.getBoundingBox = function() {
     minx = Math.min.apply(null, this.x);
     miny = Math.min.apply(null, this.y);
@@ -508,6 +545,18 @@ Shape.prototype.getBoundingBox = function() {
     return [[minx, miny], [maxx, maxy]];
 }
 
+/*
+
+    Public function to determine if two shapes are intersecting with one another
+
+    params:
+        s       A second Shape object to compare against the calling Shape object
+
+    returns:
+        true if the shapes occupy the same coordinate space on the canvas
+        false otherwise
+
+*/
 Shape.prototype.intersect = function(s) {
 
     b1 = this.getBoundingBox();
@@ -521,6 +570,15 @@ Shape.prototype.intersect = function(s) {
 
 }
 
+/*
+
+    Public function to scale a shape by a set factor in the x and why direction
+
+    params:
+        sw      Scaling factor in the x direction
+        sh      Scaling factor in the y direction
+
+*/
 Shape.prototype.scale = function(sw, sh) {
     var xmin;
     var ymin;
